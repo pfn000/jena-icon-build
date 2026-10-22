@@ -7,7 +7,7 @@ LOG="$OUT/log.txt"; exec >"$LOG" 2>&1
 python3 -m pip install -q --break-system-packages huggingface_hub >/dev/null 2>&1 || python3 -m pip install -q huggingface_hub >/dev/null 2>&1
 python3 -c "
 import os; from huggingface_hub import snapshot_download
-snapshot_download('Saidie000/jena-icon-build',repo_type='dataset',allow_patterns=['src/*','src/**'],local_dir='hf',token=os.environ['HF_TOKEN'])"
+snapshot_download('Saidie000/jena-icon-build',repo_type='dataset',allow_patterns=['src/**'],local_dir='hf',token=os.environ['HF_TOKEN'])"
 rm -rf Jena.icon; cp -R hf/src/Jena.icon ./Jena.icon; ls -R Jena.icon
 echo "== machine"; sw_vers; uname -m
 echo "== xcodes"; ls -d /Applications/Xcode*.app
@@ -17,6 +17,13 @@ echo "using $XC"; sudo xcode-select -s "$XC"; xcodebuild -version
 IC=$(find "$XC/Contents/Applications" -name ictool -type f 2>/dev/null | head -1)
 echo "ictool=$IC"
 "$IC" --help > "$OUT/ictool/help.txt" 2>&1; "$IC" -h >> "$OUT/ictool/help.txt" 2>&1; cat "$OUT/ictool/help.txt" | head -80
+echo "== bisect"
+mkdir -p "$OUT/bisect"; BEST=""
+for V in $(ls -d hf/src/variants/*.icon | sort); do
+  N=$(basename "$V" .icon)
+  if tmo 60 "$IC" "$V" --export-image --output-file "$OUT/bisect/$N.png" --platform iOS --rendition Default --width 256 --height 256 --scale 1 >"$OUT/bisect/$N.err" 2>&1 && [ -s "$OUT/bisect/$N.png" ]; then echo "PASS $N"; BEST="$V"; else echo "FAILV $N: $(head -c 200 "$OUT/bisect/$N.err")"; fi
+done
+echo "full Jena.icon:"; tmo 60 "$IC" Jena.icon --export-image --output-file "$OUT/bisect/full.png" --platform iOS --rendition Default --width 256 --height 256 --scale 1 >"$OUT/bisect/full.err" 2>&1 && echo "PASS full" || { echo "FAIL full"; if [ -n "$BEST" ]; then echo "USING $BEST"; rm -rf Jena.icon; cp -R "$BEST" Jena.icon; fi; }
 echo "== ictool renders"
 for P in iOS; do
  for R in Default Dark ClearLight ClearDark TintedLight TintedDark; do
