@@ -37,6 +37,8 @@ done
 # pink-tinted variants (tint hue/strength are ictool options)
 for R in TintedLight TintedDark; do tmo 120 "$IC" Jena.icon --export-image --output-file "$OUT/ictool/Jena-iOS-$R-pink-1024.png" --platform iOS --rendition $R --width 1024 --height 1024 --scale 1 --tint-color 0.93 --tint-strength 0.75 >>"$OUT/ictool/tint.err" 2>&1 && echo "OK $R pink"; done
 "$IC" --version
+tmo 120 "$IC" Jena.icon --export-image --output-file "$OUT/ictool/Jena-iOS-Default-gen26-1024.png" --platform iOS --rendition Default --width 1024 --height 1024 --scale 1 --design-generation 26 && echo "OK gen26"
+cp -R Jena.icon "$OUT/Jena.icon-as-rendered"
 # small sizes of Default to show legibility
 for SZ in 180 120 87 58; do tmo 120 "$IC" Jena.icon --export-image --output-file "$OUT/ictool/Jena-iOS-Default-$SZ.png" --platform iOS --rendition Default --width $SZ --height $SZ --scale 1 >/dev/null 2>&1; done
 echo "== actool compile"
