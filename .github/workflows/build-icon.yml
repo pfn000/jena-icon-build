@@ -1,0 +1,27 @@
+name: build-icon
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  icon:
+    runs-on: xcode-27
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and render with Apple tools (source and output stay in a private store)
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: bash build.sh; echo "build.sh exit $?"
+        continue-on-error: true
+      - name: Upload output to private store
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+          api=HfApi(token=os.environ["HF_TOKEN"]); R="Saidie000/jena-icon-build"
+          api.upload_folder(folder_path="out",path_in_repo="run-"+os.environ["GITHUB_RUN_ID"],repo_id=R,repo_type="dataset",commit_message="icon build "+os.environ["GITHUB_RUN_ID"])
+          print("uploaded")
+          PY
